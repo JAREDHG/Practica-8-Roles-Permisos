@@ -1,21 +1,32 @@
 <template>
-  <nav class="navbar" v-if="authStore.isAuthenticated">
+  <nav class="navbar">
     <div class="nav-brand">📦 Sistema de Catálogo</div>
+    
     <div class="nav-user">
-      <span class="user-name">Bienvenido, {{ authStore.user?.name || 'Usuario' }}</span>
-      <button @click="handleLogout" class="btn-logout">Cerrar Sesión</button>
+      <template v-if="authStore.isAuthenticated">
+        <span class="user-name">Bienvenido, {{ authStore.user?.name || 'Usuario' }}</span>
+        <button @click="handleLogout" class="btn-logout">Cerrar Sesión</button>
+      </template>
+
+      <template v-else>
+        <router-link to="/login" class="btn-login">Iniciar Sesión</router-link>
+      </template>
     </div>
   </nav>
 </template>
 
 <script setup>
 import { useAuthStore } from '../stores/auth'
+import { useRouter } from 'vue-router'
 
 const authStore = useAuthStore()
+const router = useRouter()
 
 const handleLogout = async () => {
   if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
     await authStore.logout()
+    // Redirigir al catálogo después de cerrar sesión
+    router.push('/catalogo')
   }
 }
 </script>
@@ -51,5 +62,17 @@ const handleLogout = async () => {
 }
 .btn-logout:hover {
   background-color: #dc2626;
+}
+.btn-login {
+  background-color: #3b82f6;
+  color: white;
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+.btn-login:hover {
+  background-color: #2563eb;
 }
 </style>

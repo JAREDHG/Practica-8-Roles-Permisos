@@ -22,6 +22,7 @@ class ProductoController extends Controller
 
     public function store(Request $request)
     {
+        $this->authorize('create', Producto::class);
         $request->validate([
             'nombre'  => 'required|string',
             'precio'  => 'required|numeric',
@@ -45,6 +46,7 @@ class ProductoController extends Controller
 
     public function update(Request $request, Producto $producto)
     {
+        $this->authorize('update', $producto);
 
         $request->validate([
             'nombre'  => 'sometimes|string',
@@ -65,6 +67,7 @@ class ProductoController extends Controller
 
     public function destroy(Producto $producto)
     {
+        $this->authorize('delete', $producto);
         $producto->delete();
         return response()->json(null, 204);
     }

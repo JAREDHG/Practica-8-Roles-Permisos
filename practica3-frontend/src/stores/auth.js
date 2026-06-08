@@ -3,11 +3,11 @@ import { ref, computed } from 'vue'
 import axios from 'axios'
 
 export const useAuthStore = defineStore('auth', () => {
-  // Variables de estado
   const user = ref(null)
   const token = ref(localStorage.getItem('token') || null)
 
-  // Computed para saber si hay sesión activa
+  const permisos = ref({ crear: false, editar: false, eliminar: false })
+
   const isAuthenticated = computed(() => !!token.value)
 
   // Función de Login
@@ -16,35 +16,35 @@ export const useAuthStore = defineStore('auth', () => {
       const respuesta = await axios.post('http://localhost:8000/api/login', credenciales)
       token.value = respuesta.data.token
       user.value = respuesta.data.user
+      permisos.value = respuesta.data.permisos
       localStorage.setItem('token', token.value)
     } catch (error) {
       throw error
     }
   }
 
-  // Función de Logout
   const logout = () => {
     token.value = null
     user.value = null
+    permisos.value = { crear: false, editar: false, eliminar: false }
     localStorage.removeItem('token')
   }
 
-  // LA FUNCIÓN QUE EL ROUTER NECESITABA (fetchUser)
   const fetchUser = async () => {
     try {
-      const respuesta = await axios.get('http://localhost:8000/api/user', {
+      const respuesta = await axios.get('http://localhost:8000/api/me', {
         headers: {
           Authorization: `Bearer ${token.value}`
         }
       })
+      // Guardamos toda la data de la respuesta, no solo nombre y rol
       user.value = respuesta.data
+      // Aseguramos que los permisos se actualicen
+      permisos.value = respuesta.data.permisos
     } catch (error) {
-      // Si el token falló o caducó, cerramos la sesión por seguridad
-      console.error('Error al obtener usuario. Token inválido.')
       logout()
     }
   }
 
-  // Exponemos las variables y funciones para que el resto de la app las use
-  return { user, token, isAuthenticated, login, logout, fetchUser }
+  return { user, token, permisos, isAuthenticated, login, logout, fetchUser }
 })

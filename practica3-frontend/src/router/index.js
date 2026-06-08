@@ -22,7 +22,7 @@ const routes = [
     children: [
       { path: 'dashboard', name: 'Dashboard', component: () => import('../views/admin/Dashboard.vue') },
       { path: 'crear', name: 'CrearProducto', component: () => import('../views/admin/CrearProducto.vue') },
-      { path: 'editar', name: 'EditarProducto', component: () => import('../views/admin/EditarProducto.vue') }
+      { path: 'editar/:id', name: 'EditarProducto', component: () => import('../views/admin/EditarProducto.vue') }
     ]
   },
 
@@ -47,8 +47,9 @@ router.beforeEach(async (to) => {
     return { path: '/login', query: { redirect: to.fullPath } }
   }
 
-  // 2. Verificación de ROL ADMIN (Punto 4.7.5)
-  if (to.meta.requiresAdmin && auth.user?.role !== 'admin') {
+  // 2. Permitir acceso a Admin y Editor
+  const rolesPermitidos = ['admin', 'editor'];
+  if (to.meta.requiresAdmin && !rolesPermitidos.includes(auth.user?.role)) {
     return { path: '/' } // Si no es admin, lo expulsamos al Home
   }
 })

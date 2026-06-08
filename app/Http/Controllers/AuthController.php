@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Gate;
 
 class AuthController extends Controller
 {
@@ -63,6 +64,17 @@ class AuthController extends Controller
     // me() - Retorna el usuario autenticado
     public function me(Request $request)
     {
-        return response()->json($request->user(), 200);
+        $user = $request->user();
+        return response()->json([
+            'id'       => $user->id,
+            'name'     => $user->name,
+            'email'    => $user->email,
+            'role'      => $user->role,
+            'permisos' => [
+                'crear'    => Gate::allows('crear-producto'),
+                'editar'   => Gate::allows('editar-producto'),
+                'eliminar' => Gate::allows('eliminar-producto'),
+            ],
+        ]);
     }
 }

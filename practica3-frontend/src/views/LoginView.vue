@@ -1,29 +1,33 @@
 <template>
-  <div class="auth-container">
-    <h2>Iniciar Sesión</h2>
-    <form @submit.prevent="handleLogin">
-      <div>
-        <label>Email:</label>
-        <input v-model="form.email" type="email" required />
-      </div>
-      <div>
-        <label>Contraseña:</label>
-        <input v-model="form.password" type="password" required />
-      </div>
-      <button type="submit">Entrar</button>
-    </form>
-    <p v-if="errorMessage" style="color: red;">{{ errorMessage }}</p>
+  <div class="login-wrapper">
+    <div class="login-card">
+      <h2 class="text-center mb-4">Iniciar Sesión</h2>
+      
+      <form @submit.prevent="handleLogin">
+        <div class="mb-3">
+          <label class="form-label">Correo Electrónico</label>
+          <input type="email" v-model="form.email" class="form-control" required placeholder="admin@tienda.com">
+        </div>
+        
+        <div class="mb-3">
+          <label class="form-label">Contraseña</label>
+          <input type="password" v-model="form.password" class="form-control" required placeholder="••••••••">
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 py-2 mt-2">Acceder al Sistema</button>
+      </form>
+      
+      <p v-if="errorMessage" class="text-danger text-center mt-3">{{ errorMessage }}</p>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { useAuthStore } from '../stores/auth'
-// 1. Importamos las herramientas de navegación de Vue Router
 import { useRouter, useRoute } from 'vue-router'
 
 const authStore = useAuthStore()
-// 2. Inicializamos el router (para mover) y el route (para leer la URL)
 const router = useRouter()
 const route = useRoute()
 
@@ -32,11 +36,14 @@ const errorMessage = ref('')
 
 const handleLogin = async () => {
   try {
+    // 1. Ejecutamos el login
     await authStore.login(form.value)
     
-    // 3. MAGIA DE REDIRECCIÓN: Si el cadenero guardó una ruta pendiente en la URL, 
-    // lo mandamos ahí. Si entró directo al login, lo mandamos a /admin.
-    const redirectPath = route.query.redirect || '/admin'
+    // 2. IMPORTANTE: Cargamos el perfil y los permisos del servidor
+    await authStore.fetchUser()
+    
+    // 3. Redirigimos al catálogo (o ruta pendiente)
+    const redirectPath = route.query.redirect || '/catalogo'
     router.push(redirectPath)
     
   } catch (error) {
@@ -44,3 +51,21 @@ const handleLogin = async () => {
   }
 }
 </script>
+
+<style scoped>
+.login-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+  background-color: #f8fafc;
+}
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  padding: 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+</style>

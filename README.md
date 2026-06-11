@@ -1,44 +1,45 @@
-# Práctica 06: Relaciones Eloquent
+# Práctica 08: Roles y Permisos (RBAC)
 
-Práctica enfocada en la implementación de una arquitectura escalable para la gestión de catálogos mediante paginación del lado del servidor y filtrado avanzado de productos. 
+Práctica enfocada en la implementación de un sistema de control de acceso basado en roles (RBAC) y permisos granulares, garantizando la seguridad mediante una arquitectura de tres capas: Frontend, Backend y API.
 
 ## Descripción del Proyecto
-El catálogo de productos debe soportar miles de registros. Implementarás paginación en Laravel (15 items por página), búsqueda por nombre, filtro por categoría y rango de precio. Los filtros activos se reflejarán en la URL como query params (?busqueda=camisa&categoria=2&pagina=3).
+Agregarás un campo rol al modelo User (admin, editor, cliente). Los admins pueden todo: crear, editar y eliminar. Los editores pueden crear y editar pero no eliminar. Los clientes solo pueden ver. El frontend refleja estos permisos dinámicamente en la UI.
 
 ## Tecnologías Utilizadas
 
 ### Backend
-- **Laravel 10:** Implementación de Query Scopes para consultas dinámicas y reutilizables.
-- **Paginación del lado del servidor:** Optimización mediante paginate() para un manejo eficiente de miles de registros.
-- **API Resources:** Respuesta estructurada con metadatos de paginación (meta).
+- **Laravel Gates:** Definición de reglas de autorización centralizadas en el AppServiceProvider.
+- **Laravel Policies:** Implementación de políticas de autorización vinculadas a modelos (ProductoPolicy) para blindar el controlador.
+- **Sanctum & API:** Expansión del endpoint /api/me para retornar un mapa de permisos en tiempo real al frontend.
 
 ### Frontend
-- **Vue 3 (Vite):** Implementación de Composables para la gestión de estado de filtros.
-- **Vue Router:** Sincronización bidireccional entre la interfaz y los parámetros de la URL.
-- **Debounce:** Optimización de peticiones en la búsqueda por texto.
+- **Vue 3 Directives:** Creación de una directiva personalizada v-can para el filtrado dinámico de elementos de UI según el rol.
+- **Pinia State Management:** Gestión centralizada del estado de autenticación y persistencia de permisos del usuario.
+- **Vue Router:** Implementación de Guardias Globales para proteger rutas administrativas basadas en roles.
 
 ## Características Implementadas
-- **Query Scopes:** Lógica de filtrado modularizada en el modelo Producto.
-- **Filtros Avanzados:** Búsqueda por nombre (LIKE), filtro por categoría, y rangos de precio (min/max).
-- **URL Dinámica:** Sincronización automática de filtros y número de página con los parámetros de la URL.
-- **Paginación Nav:** Componente reutilizable para la navegación entre páginas con metadatos de Laravel.
-- **Filtros Panel:** Panel lateral intuitivo con controles reactivos y botón de limpieza de estados.
-- **Sincronización:** Uso de Watchers para disparar peticiones a la API solo cuando los filtros o la URL cambian.
+- **Control de Acceso (RBAC):** Definición de permisos específicos (Crear, Editar, Eliminar) asignados a cada rol .  
+- **Seguridad en Capas:** Protección redundante entre la interfaz (ocultamiento de botones) y el servidor (validación 403 vía Policies).  
+- **Interfaz Adaptativa (v-can):** Directiva reactiva que oculta botones de administración para usuarios sin privilegios .  
+- **Sincronización de Sesión:** Carga automática de permisos tras el login para una experiencia de usuario fluida.  
+- **Validación de Backend:** Protección de endpoints mediante $this->authorize() para evitar manipulaciones externas . 
 
 ## Instrucciones de Instalación
 
 ### Backend (Laravel)
 ```bash
-composer install
-cp .env.example .env
-# Configura DB_DATABASE en .env
-php artisan migrate:fresh --seed --seeder=CategoriaProductoSeeder
-php artisan storage:link
+# Migración de roles
+php artisan make:migration add_rol_to_users_table
+php artisan migrate
+
+# Configuración de políticas y gates en AppServiceProvider y ProductoPolicy
+php artisan make:policy ProductoPolicy --model=Producto
 php artisan serve
 ```
 
 ## Frontend (Vue.js)
 ```bash
+# Instalación de directivas personalizadas y registro en main.js
 npm install
 npm run dev
 ```
